@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MUSICA OBSCURA 001</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="site-title" href="#viewer">musica obscura</a>
+      <span class="issue-title">issue 001</span>
+      <nav class="top-links" aria-label="Site links">
+        <a href="#">other work</a>
+        <a href="#">contact</a>
+      </nav>
+    </header>
+
+    <main class="main-layout">
+      <aside class="contents-panel" aria-label="Magazine contents">
+        <div class="contents-list" id="contentsList">
+          <button type="button" class="contents-item" data-page="2">
+            <span class="contents-title">foreword</span>
+          </button>
+
+          <button type="button" class="contents-item" data-page="3">
+            <span class="contents-title">roland tb-303</span>
+            <span class="contents-subtitle">not a real bass guitar</span>
+          </button>
+
+          <button type="button" class="contents-item" data-page="7">
+            <span class="contents-title">s950 &amp; s1000</span>
+            <span class="contents-subtitle">pioneering 12 bit sampling</span>
+          </button>
+
+          <button type="button" class="contents-item" data-page="10">
+            <span class="contents-title">music archaeology</span>
+            <span class="contents-subtitle">an interview with chris hampshire</span>
+          </button>
+
+          <button type="button" class="contents-item" data-page="19">
+            <span class="contents-title">unconventional sound design</span>
+            <span class="contents-subtitle">dub sirens and diy synths</span>
+          </button>
+
+          <button type="button" class="contents-item" data-page="23">
+            <span class="contents-title">suzuki omnichord</span>
+          </button>
+
+          <button type="button" class="contents-item" data-page="25">
+            <span class="contents-title">phase-8</span>
+          </button>
+
+          <button type="button" class="contents-item" data-page="27">
+            <span class="contents-title">modular synthesis</span>
+          </button>
+
+          <button type="button" class="contents-item" data-page="33">
+            <span class="contents-title">ems synthi a mk1</span>
+            <span class="contents-subtitle">synth in a briefcase</span>
+          </button>
+
+          <button type="button" class="contents-item" data-page="35">
+            <span class="contents-title">roland w-30</span>
+            <span class="contents-subtitle">workstation for the masses</span>
+          </button>
+        </div>
+      </aside>
+
+      <section class="viewer-panel" id="viewer" aria-label="Magazine viewer">
+        <div class="spread-frame" id="spreadFrame">
+          <div class="spread" id="spread">
+            <div class="paper paper-left" id="leftPaper">
+              <img id="leftPageImage" src="" alt="Left magazine page">
+            </div>
+            <div class="paper paper-right" id="rightPaper">
+              <img id="rightPageImage" src="" alt="Right magazine page">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="foreword-panel" aria-label="Magazine foreword">
+        <div class="foreword-text">
+          <p>Electronic music is not just shaped by musicians, but by the machines they choose, misuse, repair, collect and build. This magazine looks at the stranger edges of that world: instruments and devices that sit outside the obvious mainstream, from overlooked classics to new tools designed to push sound into less familiar territory.</p>
+          <p>Some machines become interesting because they invite misuse. The TB-303 is the clearest example: a bass accompaniment unit that found a completely different life in acid. Others matter because of their texture, their workflow, or the limits they place on the user, from gritty samplers to modular systems, DIY circuits, dub sirens and wholly unique synths like the Korg Phase 8.</p>
+          <p>What connects them is not simply age or rarity. It is the way design choices, technical limits and accidents can shape new musical ideas. Around these tools is a subculture of musicians, collectors, builders, repairers and archivists treating equipment not as static objects, but as active parts of electronic music’s future. These machines carry history, but they also keep opening up strange, practical and unexpected ways of making sound.</p>
+        </div>
+      </aside>
+    </main>
+
+    <div class="viewer-controls" aria-label="Magazine navigation">
+      <div class="button-group">
+        <button type="button" id="prevButton" aria-label="Previous spread">
+          <span aria-hidden="true">‹</span>
+        </button>
+        <button type="button" id="nextButton" aria-label="Next spread">
+          <span aria-hidden="true">›</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-lines" aria-hidden="true">
+    <span class="screen-line side-line line-left"></span>
+    <span class="screen-line line-gutter"></span>
+    <span class="screen-line side-line line-right"></span>
+  </div>
+
+  <div class="global-flip-layer" id="globalFlipLayer" aria-hidden="true"></div>
+  <script src="script.js"></script>
+</body>
+</html>
