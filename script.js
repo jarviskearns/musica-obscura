@@ -32,6 +32,9 @@ const articleTexts = {
 let currentSpreadStart = 1;
 let currentArticlePage = 2;
 let isAnimating = false;
+let lastLayoutMode = '';
+let lastMobileLayoutWidth = 0;
+let stableMobileViewportHeight = 0;
 
 const contentRanges = contentsItems.map((item, index) => {
   const start = Number(item.dataset.page);
@@ -101,6 +104,22 @@ function getCssPixels(variableName, fallback) {
   return Number.isFinite(value) ? value : fallback;
 }
 
+function getLayoutViewportWidth() {
+  return Math.round(document.documentElement.clientWidth || window.innerWidth || 0);
+}
+
+function getLayoutViewportHeight() {
+  return Math.round(document.documentElement.clientHeight || window.innerHeight || 0);
+}
+
+function isMobileViewport() {
+  return getLayoutViewportWidth() <= 760;
+}
+
+function getStableMobileViewportHeight() {
+  return stableMobileViewportHeight || getLayoutViewportHeight();
+}
+
 function clamp(value, minimum, maximum) {
   return Math.min(Math.max(value, minimum), maximum);
 }
@@ -109,13 +128,19 @@ function spreadArticlePage(spreadStart) {
   return spreadStart <= 1 ? 2 : spreadStart;
 }
 
-function updateLayoutSize() {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  const topbarHeight = getCssPixels('--topbar-height', 52);
+function updateLayoutSize(force = false) {
+  const viewportWidth = Math.max(320, getLayoutViewportWidth());
+  const viewportHeight = Math.max(320, getLayoutViewportHeight());
+  const isMobile = viewportWidth <= 760;
+  const layoutMode = isMobile ? 'mobile' : 'desktop';
+
+  if (isMobile && !force && lastLayoutMode === 'mobile' && Math.abs(viewportWidth - lastMobileLayoutWidth) < 2) {
+    return false;
+  }
+
+  const topbarHeight = getCssPixels('--topbar-height', isMobile ? 50 : 52);
   const controlsHeight = getCssPixels('--controls-height', 32);
   const mainHeight = Math.max(260, viewportHeight - topbarHeight - controlsHeight);
-  const isMobile = viewportWidth <= 760;
 
   let contentsWidth;
   let forewordWidth;
@@ -131,11 +156,15 @@ function updateLayoutSize() {
   let lineRightX;
 
   if (isMobile) {
+    if (lastLayoutMode !== 'mobile' || Math.abs(viewportWidth - lastMobileLayoutWidth) >= 2 || !stableMobileViewportHeight) {
+      stableMobileViewportHeight = viewportHeight;
+    }
+
     spreadWidth = Math.floor(viewportWidth);
     spreadHeight = Math.floor(spreadWidth / spreadRatio);
 
     mobileStripHeight = Math.floor(clamp(viewportWidth * 0.32, 116, 158));
-    mobileForewordHeight = Math.floor(clamp(viewportWidth * 0.42, 170, 260));
+    mobileForewordHeight = Math.floor(clamp(getStableMobileViewportHeight() * 0.4, 170, 340));
 
     contentsWidth = viewportWidth;
     forewordWidth = viewportWidth;
@@ -144,9 +173,8 @@ function updateLayoutSize() {
     forewordScale = clamp(Math.pow(viewportWidth / 390, 0.18), 0.82, 1.02);
     headerScale = 1;
 
-    const spreadLeft = (viewportWidth - spreadWidth) / 2;
     lineLeftX = 0;
-    lineGutterX = Math.floor(spreadLeft + (spreadWidth / 2));
+    lineGutterX = Math.floor(spreadWidth / 2);
     lineRightX = viewportWidth;
   } else {
     const baseContentsWidth = 312;
@@ -154,6 +182,7 @@ function updateLayoutSize() {
     const minimumForewordWidth = 132;
     const minimumSideWidth = minimumForewordWidth * 2.2;
 
+    stableMobileViewportHeight = 0;
     spreadHeight = mainHeight;
     spreadWidth = spreadHeight * spreadRatio;
 
@@ -194,6 +223,11 @@ function updateLayoutSize() {
   root.style.setProperty('--line-left-x', `${lineLeftX}px`);
   root.style.setProperty('--line-gutter-x', `${lineGutterX}px`);
   root.style.setProperty('--line-right-x', `${lineRightX}px`);
+
+  lastLayoutMode = layoutMode;
+  lastMobileLayoutWidth = isMobile ? viewportWidth : 0;
+
+  return true;
 }
 
 function getContentRangeForPage(pageNumber) {
@@ -222,7 +256,7 @@ function splitParagraphsIntoColumns(paragraphs, columnCount = 5) {
   }
 
   const forewordScale = Number.parseFloat(getComputedStyle(root).getPropertyValue('--foreword-scale')) || 1;
-  const columnWidth = window.innerWidth <= 760
+  const columnWidth = isMobileViewport()
     ? getMobileColumnWidth()
     : Math.max(1, getCssPixels('--foreword-width', 260) - (16 * forewordScale));
   const averageCharacterWidth = 5.45 * forewordScale;
@@ -269,7 +303,7 @@ function splitParagraphsIntoColumns(paragraphs, columnCount = 5) {
 }
 
 function getMobileColumnWidth() {
-  return clamp(window.innerWidth * 0.70, 205, 320);
+  return clamp(getLayoutViewportWidth() * 0.72, 215, 320);
 }
 
 function estimateParagraphLineCount(paragraphText, charactersPerLine) {
@@ -321,7 +355,7 @@ function createColumn(paragraphs) {
 }
 
 function updateMobileForewordHeight(text) {
-  if (window.innerWidth > 760) return;
+  if (!isMobileViewport()) return;
 
   const forewordScale = Number.parseFloat(getComputedStyle(root).getPropertyValue('--foreword-scale')) || 1;
   const columnWidth = getMobileColumnWidth();
@@ -333,7 +367,7 @@ function updateMobileForewordHeight(text) {
   const lineHeight = 12.8 * forewordScale;
   const paragraphGap = 4 * forewordScale;
   const verticalPadding = 14 * forewordScale;
-  const baseHeight = Math.max(150, window.innerHeight * 0.4);
+  const baseHeight = Math.max(150, getStableMobileViewportHeight() * 0.4);
 
   const estimatedHeights = columnParagraphs.map((column) => {
     const lineCount = column.reduce((sum, paragraph) => {
@@ -355,13 +389,13 @@ function updateArticleText() {
   const range = getContentRangeForPage(currentArticlePage);
   const text = articleTexts[String(range.start)] || articleTexts['2'];
   const paragraphs = splitSentencesIntoParagraphs(text, 2);
-  const mobileColumnCount = window.innerWidth <= 760 ? getMobileColumnCount(paragraphs) : 1;
+  const mobileColumnCount = isMobileViewport() ? getMobileColumnCount(paragraphs) : 1;
   const columns = splitParagraphsIntoColumns(paragraphs, mobileColumnCount);
   const columnWrap = document.createElement('div');
 
   columnWrap.className = 'article-columns';
 
-  if (window.innerWidth <= 760) {
+  if (isMobileViewport()) {
     const columnWidth = getMobileColumnWidth();
     columnWrap.style.gridTemplateColumns = `repeat(${mobileColumnCount}, ${columnWidth}px)`;
   }
@@ -493,10 +527,13 @@ contentsItems.forEach((item) => {
 });
 
 window.addEventListener('resize', () => {
-  updateLayoutSize();
-  updateArticleText();
-  clearGlobalFlipLayer();
+  const layoutChanged = updateLayoutSize();
+
+  if (layoutChanged) {
+    updateArticleText();
+    clearGlobalFlipLayer();
+  }
 });
 
-updateLayoutSize();
+updateLayoutSize(true);
 renderSpread();
